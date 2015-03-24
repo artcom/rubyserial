@@ -44,6 +44,22 @@ describe "rubyserial" do
    @sp.close
   end
 
+=begin
+  describe 'blocking read support' do
+    let(:s_in)  { @sp }
+    let(:s_out) { @sp2 }
+    it 'hands out the file descriptor object' do
+      expect(s_in.fd).to be_kind_of(Interger)
+    end
+
+    it "should read and write" do
+      s_out.write('hello')
+      check = s_in.read(5)
+      expect(check).to eql('hello')
+    end
+  end
+=end
+
   it "should read and write" do
     @sp2.write('hello')
     # small delay so it can write to the other port.
