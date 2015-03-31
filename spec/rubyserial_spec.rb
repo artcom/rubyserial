@@ -1,5 +1,6 @@
-require 'rubyserial'
+require 'spec_helper'
 
+__END__
 describe "rubyserial" do
   before do
     @ports = []
@@ -43,7 +44,6 @@ describe "rubyserial" do
    @sp2.close
    @sp.close
   end
-
 =begin
   describe 'blocking read support' do
     let(:s_in)  { @sp }
@@ -59,7 +59,6 @@ describe "rubyserial" do
     end
   end
 =end
-
   it "should read and write" do
     @sp2.write('hello')
     # small delay so it can write to the other port.

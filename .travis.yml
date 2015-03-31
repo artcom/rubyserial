@@ -12,7 +12,7 @@ matrix:
     - rvm: jruby-head
     - rvm: ruby-head
 install:
-  - sudo apt-get update && sudo apt-get install --force-yes socat
+    #- sudo apt-get update && sudo apt-get install --force-yes socat
 script:
   - bundle install
   - bundle exec rspec -fd
