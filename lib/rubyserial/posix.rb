@@ -1,6 +1,7 @@
 require 'ffi'
 
 class Serial
+
   def initialize(address, baude_rate=9600, data_bits=8)
     file_opts = RubySerial::Posix::O_RDWR | RubySerial::Posix::O_NOCTTY | RubySerial::Posix::O_NONBLOCK
     @fd = RubySerial::Posix.open(address, file_opts)
@@ -31,6 +32,13 @@ class Serial
 
   def closed?
     !@open
+  end
+
+  # use the IO object instance around the file descriptor for blocking read
+  # with IO#select or for waiting on multiple i/o lines & events
+  #
+  def io
+    @io ||= IO.new(@fd)
   end
 
   def close
