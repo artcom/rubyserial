@@ -2,7 +2,25 @@ require 'ffi'
 
 class Serial
 
-  def initialize(address, baude_rate=9600, data_bits=8)
+  Defaults = {
+    baude_rate: 9600, 
+    data_bits: 8,
+    vmin: 0,
+  }
+
+  attr_reader :config
+
+  # config value order is, in that order, from low to high: 
+  # 
+  #   config hash  -over-> baud_rate, data_bits -over->  Defaults
+  #
+  def initialize(address, baude_rate = nil, data_bits = nil, config = {})
+    # XXX this is kind of ugly, but neccessary to preserve old orginal code
+    # behaviour with default values
+    config[:baude_rate] ||= (baude_rate || Defaults[:baude_rate])
+    config[:data_bits] ||= (data_bits || Defaults[:data_bits])
+    @config = Defaults.merge(config)
+
     file_opts = RubySerial::Posix::O_RDWR | RubySerial::Posix::O_NOCTTY | RubySerial::Posix::O_NONBLOCK
     @fd = RubySerial::Posix.open(address, file_opts)
 
@@ -22,9 +40,8 @@ class Serial
       raise RubySerial::Exception, RubySerial::Posix::ERROR_CODES[FFI.errno]
     end
 
-    @config = build_config(baude_rate, data_bits)
-
-    err = RubySerial::Posix.tcsetattr(@fd, RubySerial::Posix::TCSANOW, @config)
+    termio = build_config(@config)
+    err = RubySerial::Posix.tcsetattr(@fd, RubySerial::Posix::TCSANOW, termio)
     if err == -1
       raise RubySerial::Exception, RubySerial::Posix::ERROR_CODES[FFI.errno]
     end
@@ -106,19 +123,19 @@ class Serial
 
   private
 
-  def build_config(baude_rate, data_bits)
-    config = RubySerial::Posix::Termios.new
+  def build_config(opts)
+    termio = RubySerial::Posix::Termios.new
 
-    config[:c_iflag]  = RubySerial::Posix::IGNPAR
-    config[:c_ispeed] = RubySerial::Posix::BAUDE_RATES[baude_rate]
-    config[:c_ospeed] = RubySerial::Posix::BAUDE_RATES[baude_rate]
-    config[:c_cflag]  = RubySerial::Posix::DATA_BITS[data_bits] |
+    termio[:c_iflag]  = RubySerial::Posix::IGNPAR
+    termio[:c_ispeed] = RubySerial::Posix::BAUDE_RATES[opts[:baude_rate]]
+    termio[:c_ospeed] = RubySerial::Posix::BAUDE_RATES[opts[:baude_rate]]
+    termio[:c_cflag]  = RubySerial::Posix::DATA_BITS[opts[:data_bits]] |
       RubySerial::Posix::CREAD |
       RubySerial::Posix::CLOCAL |
-      RubySerial::Posix::BAUDE_RATES[baude_rate]
+      RubySerial::Posix::BAUDE_RATES[opts[:baude_rate]]
 
-    config[:cc_c][RubySerial::Posix::VMIN] = 0
+    termio[:cc_c][RubySerial::Posix::VMIN] = opts[:vmin]
 
-    config
+    termio
   end
 end
