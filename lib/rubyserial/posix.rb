@@ -51,12 +51,11 @@ class Serial
     !@open
   end
 
-  # use the IO object instance around the file descriptor for blocking read
+  # use the file descriptor, or IO object instance around it, for blocking read
   # with IO#select or for waiting on multiple i/o lines & events
   #
-  def io
-    @io ||= IO.new(@fd)
-  end
+  attr_reader :fd
+  def io; @io ||= IO.new(@fd); end
 
   def close
     err = RubySerial::Posix.close(@fd)
